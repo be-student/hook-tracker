@@ -143,9 +143,8 @@ beforeAll(async () => {
   });
 });
 
-// The limiter counts per API key, so every test gets its own and one test's
-// traffic cannot push another test over the threshold.
 beforeEach(async () => {
+  await clients.redis.del(`ratelimit:publish:project:${project.id}`);
   apiKey = await createApiKeyRow('per-test');
 });
 
@@ -315,6 +314,29 @@ describe('POST /v1/publish', () => {
     expect(limited.headers.get('ratelimit-limit')).toBe(String(RATE_LIMIT));
     expect(limited.headers.get('ratelimit-remaining')).toBe('0');
     expect(accepted[0].headers.get('ratelimit-remaining')).toBe(String(RATE_LIMIT - 1));
+  });
+
+  it('shares the publish limit across every API key in a project', async () => {
+    const secondKey = await createApiKeyRow('same-project');
+    const responses = [];
+
+    for (let attempt = 1; attempt <= RATE_LIMIT + 1; attempt += 1) {
+      responses.push(
+        await publish(
+          { eventType: 'order.created', payload: { projectLimitAttempt: attempt } },
+          {
+            key: attempt % 2 === 0 ? secondKey : apiKey,
+            headers: { 'idempotency-key': `project-rate-${attempt}-${Date.now()}` },
+          },
+        ),
+      );
+    }
+
+    expect(responses.slice(0, RATE_LIMIT).every((response) => response.status === 202)).toBe(true);
+    expect(responses[RATE_LIMIT - 1].headers.get('ratelimit-remaining')).toBe('0');
+    expect(responses.at(-1).status).toBe(429);
+    expect(responses.at(-1).body.type).toBe('urn:hook-tracker:error:rate-limited');
+    expect(await clients.redis.zcard(`ratelimit:publish:project:${project.id}`)).toBe(RATE_LIMIT);
   });
 });
 

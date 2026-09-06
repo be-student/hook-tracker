@@ -96,7 +96,11 @@ export function createApp({ prisma, redis, publisher, connection, topology, conf
     createPublishRouter({
       publishService,
       apiKeyAuth: createApiKeyAuth({ prisma }),
-      rateLimit: createRateLimiter({ redis, limit: config.RATE_LIMIT_PUBLISH_PER_MINUTE }),
+      rateLimit: createRateLimiter({
+        redis,
+        limit: config.RATE_LIMIT_PUBLISH_PER_MINUTE,
+        identify: (req) => [req.auth.apiKeyId, `project:${req.auth.projectId}`],
+      }),
       idempotency: createIdempotency({ redis, ttlSeconds: config.IDEMPOTENCY_TTL_SECONDS }),
     }),
     createAuthRouter({

@@ -14,7 +14,7 @@ Two authentication schemes coexist:
   "type": "urn:hook-tracker:error:rate-limited",
   "title": "Rate limit exceeded",
   "status": 429,
-  "detail": "600 requests per minute allowed for this API key",
+  "detail": "600 requests per minute allowed for each API key and project",
   "instance": "/v1/publish",
   "requestId": "01J8QW..."
 }
@@ -49,7 +49,7 @@ Auth: API key. Headers: optional `Idempotency-Key`.
 }
 ```
 
-Failure modes: `400` invalid body, `401` missing or revoked key, `413` payload above `MAX_PAYLOAD_BYTES`, `409` idempotency key in flight, `422` no matching endpoint, `429` rate limited.
+Failure modes: `400` invalid body, `401` missing or revoked key, `413` payload above `MAX_PAYLOAD_BYTES`, `409` idempotency key in flight, `422` no matching endpoint, `429` when either the API key or its project reaches the publish limit.
 
 `413` is answered by the body parser, before authentication: a body that cannot be read cannot be authenticated either, and reading it to the end only to reject it is the thing the limit exists to prevent.
 

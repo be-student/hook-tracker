@@ -77,7 +77,7 @@ Places where the work is likely to stall. Listed here rather than in the specs b
 
 - [x] Express app, request id middleware, problem+json error middleware, `AppError` hierarchy, helmet, CORS from `CORS_ORIGINS`
 - [x] API key authentication (prefix lookup, constant-time hash compare, `lastUsedAt`)
-- [x] Redis sliding-window rate limiter with the documented response headers
+- [x] Redis sliding-window rate limiter per API key and project with the documented response headers
 - [x] Idempotency middleware (reserve, store, replay, `409` on concurrent duplicates)
 - [x] `POST /v1/publish` — validation, fan-out selection, event + delivery rows, publish
 - [x] `/health`, `/ready`

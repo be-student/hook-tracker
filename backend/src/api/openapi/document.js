@@ -59,7 +59,7 @@ const FAILURES = Object.freeze({
   409: 'The request conflicts with the current state of the resource.',
   413: 'The request body exceeds MAX_PAYLOAD_BYTES.',
   422: 'The request is well formed but cannot be carried out.',
-  429: 'The rate limit for this API key or IP address was exceeded.',
+  429: 'The rate limit for this API key, project or IP address was exceeded.',
 });
 
 function problems(...codes) {
