@@ -16,6 +16,10 @@ change is listed here with the steps an existing deployment has to take.
 - Documentation on connection-pool sizing for Prisma and PostgreSQL when scaling worker replicas (`docs/connection-pool-sizing.md`).
 - `DATABASE_POOL_SIZE` configuration variable (default `10`) in `backend/src/shared/env-schema.js`, `.env.example`, and wired to `@prisma/adapter-pg` in `backend/src/shared/db.js`.
 
+### Changed
+
+- Publish rate limiting now enforces separate per-key and per-project ceilings. Existing deployments should set `RATE_LIMIT_PUBLISH_PROJECT_PER_MINUTE` to an aggregate project budget greater than or equal to `RATE_LIMIT_PUBLISH_PER_MINUTE`; the default is `6000`. Rate-limit problem details now name the counter that refused the request.
+
 ## [0.3.0] - 2026-09-03
 
 An audit of the whole repository — the API surface, the operational topology, the dashboard, the

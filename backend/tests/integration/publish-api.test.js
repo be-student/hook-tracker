@@ -15,6 +15,7 @@ import {
 } from '../support/stack.js';
 
 const RATE_LIMIT = 5;
+const PROJECT_RATE_LIMIT = 8;
 const MAX_PAYLOAD_BYTES = 4096;
 
 const topology = createTopology({ namespace: 'itest-api' });
@@ -131,7 +132,11 @@ beforeAll(async () => {
   ({ server, baseUrl } = await startApi({
     clients,
     topology,
-    config: testConfig({ RATE_LIMIT_PUBLISH_PER_MINUTE: RATE_LIMIT, MAX_PAYLOAD_BYTES }),
+    config: testConfig({
+      RATE_LIMIT_PUBLISH_PER_MINUTE: RATE_LIMIT,
+      RATE_LIMIT_PUBLISH_PROJECT_PER_MINUTE: PROJECT_RATE_LIMIT,
+      MAX_PAYLOAD_BYTES,
+    }),
     logger: silentLogger(),
   }));
 
@@ -295,7 +300,7 @@ describe('POST /v1/publish', () => {
   it('rate limits past the configured threshold and reports when to retry', async () => {
     const responses = [];
 
-    for (let attempt = 1; attempt <= RATE_LIMIT + 1; attempt += 1) {
+    for (let attempt = 1; attempt <= PROJECT_RATE_LIMIT + 1; attempt += 1) {
       responses.push(
         await publish(
           { eventType: 'order.created', payload: { attempt } },
@@ -332,11 +337,15 @@ describe('POST /v1/publish', () => {
       );
     }
 
-    expect(responses.slice(0, RATE_LIMIT).every((response) => response.status === 202)).toBe(true);
-    expect(responses[RATE_LIMIT - 1].headers.get('ratelimit-remaining')).toBe('0');
+    expect(
+      responses.slice(0, PROJECT_RATE_LIMIT).every((response) => response.status === 202),
+    ).toBe(true);
+    expect(responses[PROJECT_RATE_LIMIT - 1].headers.get('ratelimit-remaining')).toBe('0');
     expect(responses.at(-1).status).toBe(429);
     expect(responses.at(-1).body.type).toBe('urn:hook-tracker:error:rate-limited');
-    expect(await clients.redis.zcard(`ratelimit:publish:project:${project.id}`)).toBe(RATE_LIMIT);
+    expect(await clients.redis.zcard(`ratelimit:publish:project:${project.id}`)).toBe(
+      PROJECT_RATE_LIMIT,
+    );
   });
 });
 

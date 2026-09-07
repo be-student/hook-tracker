@@ -14,7 +14,7 @@ Two authentication schemes coexist:
   "type": "urn:hook-tracker:error:rate-limited",
   "title": "Rate limit exceeded",
   "status": 429,
-  "detail": "600 requests per minute allowed for each API key and project",
+  "detail": "600 requests per minute allowed for this API key",
   "instance": "/v1/publish",
   "requestId": "01J8QW..."
 }
@@ -65,7 +65,7 @@ Every response carries `X-Request-Id`. A caller may set the header itself — it
 | POST   | `/v1/auth/logout`   | revokes the refresh token                        |
 | GET    | `/v1/auth/me`       | current user with memberships                    |
 
-Auth routes are rate limited per IP (20 attempts per minute), separately from the per-key ingestion limit, because the caller of a login attempt has no key yet.
+Auth routes are rate limited per address and account (20 attempts per minute), separately from the per-key and per-project ingestion limits, because the caller of a login attempt has no key yet.
 
 `register` and `login` return `{ user, project?, accessToken }` and set the refresh cookie. `refresh` returns a new `accessToken` and replaces the cookie; the token it was called with is revoked in the same step, so calling it twice with the same cookie is a `401`.
 

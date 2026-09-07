@@ -45,6 +45,7 @@ export const envSchema = z.object({
   RESPONSE_SNIPPET_BYTES: z.coerce.number().int().min(1).default(8192),
 
   RATE_LIMIT_PUBLISH_PER_MINUTE: z.coerce.number().int().min(1).default(600),
+  RATE_LIMIT_PUBLISH_PROJECT_PER_MINUTE: z.coerce.number().int().min(1).default(6000),
   IDEMPOTENCY_TTL_SECONDS: z.coerce.number().int().min(1).default(86_400),
   BULK_REPLAY_LIMIT: z.coerce.number().int().min(1).default(500),
 
@@ -69,6 +70,14 @@ export const envSchema = z.object({
 });
 
 const envSchemaWithCrossFieldRules = envSchema.superRefine((env, ctx) => {
+  if (env.RATE_LIMIT_PUBLISH_PROJECT_PER_MINUTE < env.RATE_LIMIT_PUBLISH_PER_MINUTE) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['RATE_LIMIT_PUBLISH_PROJECT_PER_MINUTE'],
+      message: 'must be greater than or equal to RATE_LIMIT_PUBLISH_PER_MINUTE',
+    });
+  }
+
   if (env.MAX_ATTEMPTS > MAX_SUPPORTED_ATTEMPTS) {
     ctx.addIssue({
       code: 'custom',

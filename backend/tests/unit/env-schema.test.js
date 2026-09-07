@@ -28,12 +28,24 @@ describe('env schema', () => {
     expect(result.data.MAX_ATTEMPTS).toBe(6);
     expect(result.data.MAX_PAYLOAD_BYTES).toBe(262144);
     expect(result.data.RATE_LIMIT_PUBLISH_PER_MINUTE).toBe(600);
+    expect(result.data.RATE_LIMIT_PUBLISH_PROJECT_PER_MINUTE).toBe(6000);
     expect(result.data.IDEMPOTENCY_TTL_SECONDS).toBe(86400);
     expect(result.data.BULK_REPLAY_LIMIT).toBe(500);
     expect(result.data.ENDPOINT_AUTO_DISABLE_THRESHOLD).toBe(20);
     expect(result.data.RETENTION_DAYS).toBe(30);
     expect(result.data.SSRF_ALLOW_PRIVATE).toBe(false);
     expect(result.data.CORS_ORIGINS).toEqual([]);
+  });
+
+  it('rejects a project publish limit below the per-key limit', () => {
+    const result = parseEnv({
+      ...validEnv,
+      RATE_LIMIT_PUBLISH_PER_MINUTE: '600',
+      RATE_LIMIT_PUBLISH_PROJECT_PER_MINUTE: '599',
+    });
+
+    expect(result.success).toBe(false);
+    expect(pathsOf(result)).toContain('RATE_LIMIT_PUBLISH_PROJECT_PER_MINUTE');
   });
 
   it('reports every missing required variable at once', () => {

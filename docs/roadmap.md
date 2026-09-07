@@ -80,7 +80,6 @@ These came out of the security review. Each one is a real weakness with a real f
 | 35  | Close the account-existence oracle                   | A login for an unknown email skips argon2 and answers measurably faster, and `addMember` says outright whether an email has an account behind it                                           | small  |
 | 36  | Make the SSRF rejection generic to the caller        | The message distinguishes "does not resolve" from "resolves to a private address", which maps an internal DNS zone for anyone allowed to save an endpoint                                  | small  |
 | 37  | Keep instance-wide numbers out of per-project alerts | A dead-letter backlog alert carries the shared queue depth to every project that configured an address, which is a side channel about the other tenants                                    | small  |
-| 38  | A per-project publish limit beside the per-key one   | The publish window is counted per API key, so a project multiplies its own ceiling by issuing more keys                                                                                    | small  |
 
 ## The two large ones
 
