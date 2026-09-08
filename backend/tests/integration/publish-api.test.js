@@ -300,7 +300,7 @@ describe('POST /v1/publish', () => {
   it('rate limits past the configured threshold and reports when to retry', async () => {
     const responses = [];
 
-    for (let attempt = 1; attempt <= PROJECT_RATE_LIMIT + 1; attempt += 1) {
+    for (let attempt = 1; attempt <= RATE_LIMIT + 1; attempt += 1) {
       responses.push(
         await publish(
           { eventType: 'order.created', payload: { attempt } },
@@ -325,7 +325,7 @@ describe('POST /v1/publish', () => {
     const secondKey = await createApiKeyRow('same-project');
     const responses = [];
 
-    for (let attempt = 1; attempt <= RATE_LIMIT + 1; attempt += 1) {
+    for (let attempt = 1; attempt <= PROJECT_RATE_LIMIT + 1; attempt += 1) {
       responses.push(
         await publish(
           { eventType: 'order.created', payload: { projectLimitAttempt: attempt } },
@@ -343,6 +343,7 @@ describe('POST /v1/publish', () => {
     expect(responses[PROJECT_RATE_LIMIT - 1].headers.get('ratelimit-remaining')).toBe('0');
     expect(responses.at(-1).status).toBe(429);
     expect(responses.at(-1).body.type).toBe('urn:hook-tracker:error:rate-limited');
+    expect(responses.at(-1).headers.get('ratelimit-limit')).toBe(String(PROJECT_RATE_LIMIT));
     expect(await clients.redis.zcard(`ratelimit:publish:project:${project.id}`)).toBe(
       PROJECT_RATE_LIMIT,
     );

@@ -98,7 +98,6 @@ export function createApp({ prisma, redis, publisher, connection, topology, conf
       apiKeyAuth: createApiKeyAuth({ prisma }),
       rateLimit: createRateLimiter({
         redis,
-        limit: config.RATE_LIMIT_PUBLISH_PER_MINUTE,
         identify: (req) => [
           {
             value: req.auth.apiKeyId,

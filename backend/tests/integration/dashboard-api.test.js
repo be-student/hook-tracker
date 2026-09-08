@@ -317,13 +317,16 @@ describe('authentication', () => {
     const spent = [];
 
     for (let i = 0; i < AUTH_ATTEMPTS_PER_MINUTE + 1; i += 1) {
-      spent.push((await attempt('lockout-a@hook-tracker.test')).status);
+      spent.push(await attempt('lockout-a@hook-tracker.test'));
     }
 
-    expect(spent.slice(0, AUTH_ATTEMPTS_PER_MINUTE)).toEqual(
+    expect(spent.slice(0, AUTH_ATTEMPTS_PER_MINUTE).map(({ status }) => status)).toEqual(
       Array(AUTH_ATTEMPTS_PER_MINUTE).fill(401),
     );
-    expect(spent.at(-1)).toBe(429);
+    expect(spent.at(-1).status).toBe(429);
+    expect(spent.at(-1).body.detail).toBe(
+      `${AUTH_ATTEMPTS_PER_MINUTE} requests per minute allowed for this address or account`,
+    );
 
     const other = await attempt('lockout-b@hook-tracker.test');
 
